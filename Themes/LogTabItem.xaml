@@ -1,0 +1,194 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:bh="clr-namespace:Namsiz.WPF.Window.Ribbon.Behaviors"
+    xmlns:c="clr-namespace:Namsiz.WPF.Window.Ribbon.Controls"
+    xmlns:log="clr-namespace:Namsiz.WPF.Window.Ribbon.Logging">
+
+    <ResourceDictionary.MergedDictionaries>
+        <!--  用到 Controls.xaml 里的细条滚动条样式，必须自行合并（同层字典之间不能互相 StaticResource 引用）  -->
+        <ResourceDictionary Source="pack://application:,,,/Namsiz.WPF.Window.Ribbon;component/Themes/Controls.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <!--#region 日志行模板-->
+    <!--  默认纯文本（轻量）  -->
+    <DataTemplate x:Key="Namsiz.RibbonWindow.Templates.LogRow">
+        <TextBlock
+            x:Name="LogText"
+            Margin="1"
+            TextWrapping="Wrap">
+            <Run Text="{Binding Timestamp, StringFormat='[HH:mm:ss] '}" />
+            <Run Text="{Binding Message}" />
+        </TextBlock>
+        <DataTemplate.Triggers>
+            <!--  成功/完成消息：绿色  -->
+            <DataTrigger Binding="{Binding Kind}" Value="{x:Static log:LogKind.Success}">
+                <Setter TargetName="LogText" Property="Foreground" Value="Green" />
+            </DataTrigger>
+            <!--  警告消息：橙色  -->
+            <DataTrigger Binding="{Binding Kind}" Value="{x:Static log:LogKind.Warning}">
+                <Setter TargetName="LogText" Property="Foreground" Value="Orange" />
+            </DataTrigger>
+            <!--  错误消息：红色  -->
+            <DataTrigger Binding="{Binding Kind}" Value="{x:Static log:LogKind.Error}">
+                <Setter TargetName="LogText" Property="Foreground" Value="Red" />
+            </DataTrigger>
+            <!--  调试消息：灰色（仅 DEBUG 模式产生）  -->
+            <DataTrigger Binding="{Binding Kind}" Value="{x:Static log:LogKind.Debug}">
+                <Setter TargetName="LogText" Property="Foreground" Value="Gray" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!--
+        文本选择模式（只读 TextBox，可拖动选择，不能编辑）：
+        底层 Hidden 的 TextBlock 仅用于撑出与普通行一致的高度（Hidden 仍参与布局测量）
+    -->
+    <DataTemplate x:Key="Namsiz.RibbonWindow.Templates.LogRowSelect">
+        <Grid>
+            <TextBlock
+                x:Name="MeasureText"
+                Margin="1"
+                TextWrapping="Wrap"
+                Visibility="Hidden">
+                <Run Text="{Binding Timestamp, StringFormat='[HH:mm:ss] '}" />
+                <Run Text="{Binding Message}" />
+            </TextBlock>
+            <TextBox
+                x:Name="SelectBox"
+                Height="{Binding ActualHeight, ElementName=MeasureText}"
+                Padding="0"
+                VerticalContentAlignment="Center"
+                Background="Transparent"
+                BorderThickness="0"
+                FocusVisualStyle="{x:Null}"
+                HorizontalScrollBarVisibility="Hidden"
+                IsReadOnly="True"
+                Text="{Binding Message}"
+                TextWrapping="Wrap"
+                VerticalScrollBarVisibility="Hidden" />
+        </Grid>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Kind}" Value="{x:Static log:LogKind.Success}">
+                <Setter TargetName="SelectBox" Property="Foreground" Value="Green" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Kind}" Value="{x:Static log:LogKind.Warning}">
+                <Setter TargetName="SelectBox" Property="Foreground" Value="Orange" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Kind}" Value="{x:Static log:LogKind.Error}">
+                <Setter TargetName="SelectBox" Property="Foreground" Value="Red" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Kind}" Value="{x:Static log:LogKind.Debug}">
+                <Setter TargetName="SelectBox" Property="Foreground" Value="Gray" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+    <!--#endregion-->
+
+    <!--#region 日志列表默认样式-->
+    <!--
+        轻量 ListBox（虚拟化 + 精简项容器）。
+        选择复制两种方式并存：整行多选 Ctrl+C；双击行 → 该行变只读 TextBox 拖动选择。
+        行模板由 DataTrigger 切换（IsTextSelecting），仅双击行承担 TextBox 开销。
+    -->
+    <Style x:Key="Namsiz.RibbonWindow.Styles.LogListBox" TargetType="ListBox">
+        <Setter Property="SelectionMode" Value="Extended" />
+        <!--  日志行是自动换行的，不需要水平滚动；关掉水平条也就不会出现"两输入框夹一个角"的原生外观  -->
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="BorderThickness" Value="0" />
+        <!--  与 DataGrid 用同一种滚动单位，滚动条粗细、滑块行为保持一致  -->
+        <Setter Property="VirtualizingPanel.ScrollUnit" Value="Item" />
+        <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True" />
+        <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
+        <Setter Property="bh:AutoScrollBehavior.IsEnabled" Value="True" />
+        <Setter Property="bh:LogListBoxCopyBehavior.IsEnabled" Value="True" />
+        <Setter Property="bh:LogRowTextSelectBehavior.IsEnabled" Value="True" />
+        <Setter Property="bh:ShiftWheelHorizontalScrollBehavior.IsEnabled" Value="True" />
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border x:Name="Bd" Background="Transparent">
+                                    <ContentPresenter />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="#240078D7" />
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="#14000000" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <ContentControl
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Content="{Binding}">
+                        <ContentControl.Style>
+                            <Style TargetType="ContentControl">
+                                <Setter Property="ContentTemplate" Value="{StaticResource Namsiz.RibbonWindow.Templates.LogRow}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsTextSelecting}" Value="True">
+                                        <Setter Property="ContentTemplate" Value="{StaticResource Namsiz.RibbonWindow.Templates.LogRowSelect}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ContentControl.Style>
+                    </ContentControl>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!--#endregion-->
+
+    <!--#region 日志列表模板：自己给 ScrollViewer，滚动条才会用上库的细条样式（与 DataGrid 一致）-->
+    <ControlTemplate x:Key="Namsiz.RibbonWindow.Templates.LogListBox" TargetType="ListBox">
+        <Border
+            Background="{TemplateBinding Background}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            Padding="{TemplateBinding Padding}">
+            <ScrollViewer
+                Focusable="False"
+                HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                Template="{StaticResource Namsiz.RibbonWindow.Templates.SlimScrollViewer}"
+                VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+            </ScrollViewer>
+        </Border>
+    </ControlTemplate>
+    <!--#endregion-->
+
+    <!--#region 日志 Tab 内容区（DataContext 为所属的 LogTabItem）-->
+    <Style TargetType="{x:Type c:LogTabContent}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type c:LogTabContent}">
+                    <!--
+                        用库自己的列表模板：系统模板会给 ScrollViewer 里的滚动条指定固定样式，
+                        那样隐式细条样式就套不上去（表现为 17px 原生滚动条）；自己给模板后即可与 DataGrid 一致。
+                    -->
+                    <ListBox
+                        ItemsSource="{Binding ItemsSource}"
+                        Style="{StaticResource Namsiz.RibbonWindow.Styles.LogListBox}"
+                        Template="{StaticResource Namsiz.RibbonWindow.Templates.LogListBox}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!--#endregion-->
+
+</ResourceDictionary>

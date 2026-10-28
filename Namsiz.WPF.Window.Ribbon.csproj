@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<UseWPF>true</UseWPF>
+		<RootNamespace>Namsiz.WPF.Window.Ribbon</RootNamespace>
+		<AssemblyName>Namsiz.WPF.Window.Ribbon</AssemblyName>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);1591</NoWarn>
+	</PropertyGroup>
+
+	<!--#region NuGet 打包：Release 构建自动产出 nupkg，其他项目可直接引用（依赖随包传递）-->
+	<PropertyGroup>
+		<PackageId>Namsiz.WPF.Window.Ribbon</PackageId>
+		<Version>2.1.0</Version>
+		<Authors>Namsiz.T</Authors>
+		<PackageReleaseNotes>2.1.0：新增 Ribbon.WindowIcon、RibbonGroup.ContentHeight、RibbonItemsPanel；最小化时鼠标悬停即下拉、点击钉住、点命令后停止悬停预览、双击页签栏恢复；忙碌遮罩支持确定进度条、百分比文案与转圈指示；功能区左右留 8px 留白、窗口图标移至功能区左上角、输入框标签左置、分组竖排优先。</PackageReleaseNotes>
+		<Description>带功能区（Ribbon）菜单的通用 WPF 工具窗口库：功能区菜单、内置日志 Tab、数据表格 Tab（筛选/行号/虚拟化/校验着色）、状态栏与忙碌遮罩，引用后只需声明菜单按钮与命令、数据列与数据源。2.0.0 起不再依赖 Fluent.Ribbon：功能区由库自身实现，按钮回归 WPF 内置 Button（图标统一用 RibbonProperties.Icon 附加属性），支持功能区最小化与标题在页签/窗口按钮之间自动居中。</Description>
+		<PackageTags>Namsiz WPF Ribbon Window DataGrid Serilog ToolWindow</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<PackageOutputPath>$(MSBuildProjectDirectory)\nupkg</PackageOutputPath>
+		<GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
+
+		<!-- nuget.org 展示信息 -->
+		<PackageIcon>package-icon.png</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageProjectUrl>https://github.com/Namsiz/Namsiz.WPF.Window.Ribbon</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Namsiz/Namsiz.WPF.Window.Ribbon</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+	</PropertyGroup>
+	<!--#endregion-->
+
+	<!--#region 打包装进包里的说明与图标-->
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+		<None Include="Assets\package-icon.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	<!--#endregion-->
+
+	<!--#region 依赖（均为公共 API 的一部分，随包传递到引用方）-->
+	<ItemGroup>
+		<PackageReference Include="Namsiz.WPF.Window" Version="1.1.2" />
+		<PackageReference Include="Serilog" Version="4.4.0" />
+	</ItemGroup>
+	<!--#endregion-->
+
+</Project>

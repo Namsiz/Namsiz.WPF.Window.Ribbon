@@ -1,0 +1,31 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Version>1.0.0</Version>
+    <Nullable>enable</Nullable>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <!--
+    本机（无系统 .NET Framework 4.7.2 目标包）构建 WPF 的兼容补丁：
+    SDK 自动还原的 Microsoft.NETFramework.ReferenceAssemblies 只对普通工程生效，
+    XAML 的 MarkupCompilePass 临时工程（*_wpftmp）拿不到，导致 MSB3644。
+    这里对该临时工程复刻包内 Microsoft.NETFramework.ReferenceAssemblies.net472.targets 的做法
+    （TargetFrameworkRootPath + NoStdLib + 显式 mscorlib），让 Facades\netstandard.dll 一并解析。
+    条件带 Exists 探测：本机无该缓存包时保持原行为，装有系统目标包的开发机完全不受影响。
+  -->
+  <PropertyGroup>
+    <_Net472ReferenceAssembliesRoot Condition="'$(_Net472ReferenceAssembliesRoot)' == '' And Exists('$(NuGetPackageRoot)microsoft.netframework.referenceassemblies.net472\1.0.0\build')">$(NuGetPackageRoot)microsoft.netframework.referenceassemblies.net472\1.0.0\build\</_Net472ReferenceAssembliesRoot>
+    <_Net472ReferenceAssembliesRoot Condition="'$(_Net472ReferenceAssembliesRoot)' == '' And Exists('$(UserProfile)\.nuget\packages\microsoft.netframework.referenceassemblies.net472\1.0.0\build')">$(UserProfile)\.nuget\packages\microsoft.netframework.referenceassemblies.net472\1.0.0\build\</_Net472ReferenceAssembliesRoot>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('_wpftmp')) And '$(_Net472ReferenceAssembliesRoot)' != ''">
+    <TargetFrameworkRootPath>$(_Net472ReferenceAssembliesRoot)</TargetFrameworkRootPath>
+    <EnableFrameworkPathOverride>false</EnableFrameworkPathOverride>
+    <NoStdLib>true</NoStdLib>
+  </PropertyGroup>
+  <ItemGroup Condition="$(MSBuildProjectName.EndsWith('_wpftmp')) And '$(_Net472ReferenceAssembliesRoot)' != ''">
+    <Reference Include="mscorlib" />
+  </ItemGroup>
+</Project>

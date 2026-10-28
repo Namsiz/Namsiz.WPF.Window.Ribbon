@@ -1,0 +1,398 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:attach="clr-namespace:Namsiz.WPF.Window.Attach;assembly=Namsiz.WPF.Window"
+    xmlns:c="clr-namespace:Namsiz.WPF.Window.Ribbon"
+    xmlns:controls="clr-namespace:Namsiz.WPF.Window.Ribbon.Controls"
+    xmlns:conv="clr-namespace:Namsiz.WPF.Window.Ribbon.Converters">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Namsiz.WPF.Window;component/Themes/Generic.xaml" />
+        <!--  内容区 Tab 与滚动条样式在本字典内使用，必须自行合并（同层字典之间不能互相 StaticResource 引用）  -->
+        <ResourceDictionary Source="pack://application:,,,/Namsiz.WPF.Window.Ribbon;component/Themes/Controls.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <!--#region 窗口配色与文本样式-->
+    <SolidColorBrush x:Key="Namsiz.RibbonWindow.Brushes.Primary" Color="#EFEFEF" />
+    <SolidColorBrush x:Key="Namsiz.RibbonWindow.Brushes.Border" Color="#E0E0E0" />
+    <SolidColorBrush x:Key="Namsiz.RibbonWindow.Brushes.BusyMask" Color="#AAEFEFEF" />
+    <SolidColorBrush x:Key="Namsiz.RibbonWindow.Brushes.StatusForeground" Color="#666666" />
+    <SolidColorBrush x:Key="Namsiz.RibbonWindow.Brushes.BusyPercentForeground" Color="#2E8B57" />
+
+    <!--#region 默认窗口图标（矢量图表图标；使用方设置 Window.Icon 即可覆盖）-->
+    <DrawingImage x:Key="Namsiz.RibbonWindow.Images.DefaultIcon">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="#57A0FF">
+                    <GeometryDrawing.Geometry>
+                        <RectangleGeometry Rect="0,15,6,13" RadiusX="1.5" RadiusY="1.5" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="#2F7BF6">
+                    <GeometryDrawing.Geometry>
+                        <RectangleGeometry Rect="9,8,6,20" RadiusX="1.5" RadiusY="1.5" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="#1F6AEB">
+                    <GeometryDrawing.Geometry>
+                        <RectangleGeometry Rect="18,1,6,27" RadiusX="1.5" RadiusY="1.5" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+    <!--#endregion-->
+
+    <!--#region 默认菜单按钮图标（矢量：清除排序 / 清除筛选 / 导出日志）-->
+    <DrawingImage x:Key="Namsiz.RibbonWindow.Images.ClearSort">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="#5A5A5A">
+                    <GeometryDrawing.Geometry>
+                        <GeometryGroup>
+                            <RectangleGeometry Rect="1,2,9,1.8" />
+                            <RectangleGeometry Rect="1,6.2,6,1.8" />
+                            <RectangleGeometry Rect="1,10.4,3.6,1.8" />
+                        </GeometryGroup>
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="M9.4,8.2 L14.4,13.2">
+                    <GeometryDrawing.Pen>
+                        <Pen
+                            Brush="#D9534F"
+                            EndLineCap="Round"
+                            StartLineCap="Round"
+                            Thickness="1.6" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+    <DrawingImage x:Key="Namsiz.RibbonWindow.Images.ClearFilter">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="#5A5A5A" Geometry="M1,1.5 L13.5,1.5 8.6,7.2 8.6,13.8 5.9,12.3 5.9,7.2 Z" />
+                <GeometryDrawing Geometry="M9.4,8.2 L14.4,13.2">
+                    <GeometryDrawing.Pen>
+                        <Pen
+                            Brush="#D9534F"
+                            EndLineCap="Round"
+                            StartLineCap="Round"
+                            Thickness="1.6" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+    <DrawingImage x:Key="Namsiz.RibbonWindow.Images.ExportLog">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="#2F7BF6" Geometry="M8,1 L11.8,5.2 9.3,5.2 9.3,9.6 6.7,9.6 6.7,5.2 4.2,5.2 Z" />
+                <GeometryDrawing Brush="#57A0FF" Geometry="M2,11 L14,11 14,15 2,15 Z" />
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+    <!--#endregion-->
+
+    <conv:StatusTextConverter x:Key="Namsiz.RibbonWindow.Converters.StatusText" />
+    <conv:InverseBoolConverter x:Key="Namsiz.RibbonWindow.Converters.InverseBool" />
+
+    <!--
+        标题默认不显示在左上角：Namsiz 的标题槽就在图标右侧，没有图标时会先把标题显示在图标位置，
+        标题改由功能栏在页签与窗口按钮之间居中显示。使用方若想让标题回到左上角，覆盖本样式即可。
+    -->
+    <Style x:Key="Namsiz.RibbonWindow.Styles.Title" BasedOn="{StaticResource NamsizWindowTitle}" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Visibility" Value="Collapsed" />
+    </Style>
+
+    <!--
+        图标：略缩小并略微上移。功能栏的内容区上沿大约在标题栏下方 35px 处，
+        图标若占满 7+34px 就会与菜单首行"贴住"，这里压到 28px 并上移留出间隙。
+    -->
+    <Style x:Key="Namsiz.RibbonWindow.Styles.Icon" TargetType="Image">
+        <Setter Property="Width" Value="28" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Margin" Value="7,5,7,5" />
+    </Style>
+
+    <!--
+        2.0 起窗口图标改由功能区自己画在左上角（见 Ribbon.WindowIcon），
+        窗口模板里原来的图标列折叠掉，功能区才能整块贴到窗口左边缘（左边界 = 0）。
+    -->
+    <Style
+        x:Key="Namsiz.RibbonWindow.Styles.HiddenIcon"
+        BasedOn="{StaticResource Namsiz.RibbonWindow.Styles.Icon}"
+        TargetType="Image">
+        <Setter Property="Visibility" Value="Collapsed" />
+        <Setter Property="Margin" Value="0" />
+    </Style>
+    <!--#endregion-->
+
+    <!--#region 功能栏：页签 / 居中标题 / 置顶按钮全部由功能区控件自带-->
+    <DataTemplate x:Key="Namsiz.RibbonWindow.FunctionBarTemplate">
+        <controls:Ribbon
+            Margin="8,2,8,4"
+            HorizontalAlignment="Stretch"
+            IsEnabled="{Binding IsBusy, Converter={StaticResource Namsiz.RibbonWindow.Converters.InverseBool}, RelativeSource={RelativeSource AncestorType={x:Type c:RibbonWindow}}}"
+            IsTopmost="{Binding Topmost, Mode=TwoWay, RelativeSource={RelativeSource AncestorType={x:Type c:RibbonWindow}}}"
+            ItemsSource="{Binding RibbonTabs, RelativeSource={RelativeSource AncestorType={x:Type c:RibbonWindow}}}"
+            Title="{Binding Title, RelativeSource={RelativeSource AncestorType={x:Type c:RibbonWindow}}}"
+            WindowIcon="{Binding Icon, RelativeSource={RelativeSource AncestorType={x:Type c:RibbonWindow}}}" />
+    </DataTemplate>
+    <!--#endregion-->
+
+    <!--#region 忙碌进度条：渐变填充 + 流光位移动画-->
+    <!--
+        动效只动画一个 GradientStop.Offset，与数据量/行数无关，因此不影响性能；
+        确定态（给了 BusyProgress）与不确定态都适用（不确定态下它看起来就是流动的等待条）。
+    -->
+    <Style x:Key="Namsiz.RibbonWindow.Styles.BusyProgressBar" TargetType="ProgressBar">
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Minimum" Value="0" />
+        <Setter Property="Maximum" Value="100" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Border
+                        Background="#EDEDED"
+                        ClipToBounds="True"
+                        CornerRadius="6">
+                        <Grid>
+                            <Rectangle x:Name="PART_Track" />
+                            <Border
+                                x:Name="PART_Indicator"
+                                HorizontalAlignment="Left"
+                                CornerRadius="6">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Offset="0" Color="#2E8B57" />
+                                        <GradientStop x:Name="ShineStop" Offset="0.5" Color="#8FE0B4" />
+                                        <GradientStop Offset="1" Color="#2E8B57" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <!--
+                            流光只在「可见 且 不确定进度」时跑：
+                              · 隐藏（空闲）时跑纯属浪费渲染线程；
+                              · 已知百分比时应该是实心进度条，不该让人以为还在"忙碌中"。
+                        -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsVisible" Value="True" />
+                                <Condition Property="IsIndeterminate" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.EnterActions>
+                                <BeginStoryboard x:Name="ShineStoryboard">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation
+                                            AutoReverse="True"
+                                            Duration="0:0:1.6"
+                                            From="0"
+                                            Storyboard.TargetName="PART_Indicator"
+                                            Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[1].(GradientStop.Offset)"
+                                            To="1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiTrigger.EnterActions>
+                            <MultiTrigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="ShineStoryboard" />
+                            </MultiTrigger.ExitActions>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!--#endregion-->
+
+    <!--#region 窗口内容区：Tab 控件 + 状态栏 + 忙碌遮罩-->
+    <Style TargetType="{x:Type controls:RibbonShell}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type controls:RibbonShell}">
+                    <!--  必须给底色：内容区留出左右边距后，露出来的就是这块背景  -->
+                    <Grid Background="White">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!--  内容区同样左右留 8px，与功能区的留白对齐  -->
+                        <TabControl
+                            x:Name="PART_Tabs"
+                            Margin="8,0,8,0"
+                            Padding="0"
+                            BorderBrush="{x:Null}"
+                            BorderThickness="0"
+                            ItemContainerStyle="{StaticResource Namsiz.RibbonWindow.Styles.ContentTabItem}"
+                            ItemsSource="{Binding TabItems, RelativeSource={RelativeSource AncestorType={x:Type c:RibbonWindow}}}"
+                            Style="{StaticResource Namsiz.RibbonWindow.Styles.ContentTabControl}"
+                            TabStripPlacement="Bottom" />
+
+                        <!--  状态栏：数据 Tab 显示行数统计，其余显示窗口空闲文本  -->
+                        <Border
+                            Grid.Row="1"
+                            Height="25"
+                            Background="#F5F5F5">
+                            <TextBlock
+                                Margin="5,0"
+                                VerticalAlignment="Center"
+                                Foreground="{StaticResource Namsiz.RibbonWindow.Brushes.StatusForeground}">
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource Namsiz.RibbonWindow.Converters.StatusText}">
+                                        <Binding ElementName="PART_Tabs" Path="SelectedItem.StatusText" />
+                                        <Binding Path="IdleStatusText" RelativeSource="{RelativeSource AncestorType={x:Type c:RibbonWindow}}" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </Border>
+
+                        <!--
+                            忙碌遮罩：空闲时用 Hidden 而不是 Collapsed。
+                            进度条里的流光是模板内的动画，元素一旦被 Collapsed 就不参与布局、模板也不会应用，
+                            Loaded 时按名字找不到动画目标会抛异常；Hidden 既保留布局（模板照常应用），
+                            又让 IsVisible 为 false（外部按 IsVisible 判断遮罩是否出现仍然成立）。
+                        -->
+                        <Border
+                            Grid.RowSpan="2"
+                            Background="{StaticResource Namsiz.RibbonWindow.Brushes.BusyMask}">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Hidden" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsBusy, RelativeSource={RelativeSource AncestorType={x:Type c:RibbonWindow}}}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <Border
+                                Margin="100,0"
+                                VerticalAlignment="Center"
+                                Background="White"
+                                CornerRadius="10">
+                                <StackPanel Margin="20" Orientation="Vertical">
+                                    <TextBlock
+                                        Margin="0,0,0,10"
+                                        HorizontalAlignment="Center"
+                                        FontSize="16"
+                                        Text="{Binding BusyText, RelativeSource={RelativeSource AncestorType={x:Type c:RibbonWindow}}}" />
+                                    <!--
+                                        进度条右侧放一个转圈：百分比已经在上一行文案里（「…（42%）」），
+                                        这里再写一个 XX% 是重复信息，改成状态指示更清爽。
+                                    -->
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ProgressBar
+                                            Grid.Column="0"
+                                            IsIndeterminate="{Binding IsBusyProgressIndeterminate, RelativeSource={RelativeSource AncestorType={x:Type c:RibbonWindow}}}"
+                                            Style="{StaticResource Namsiz.RibbonWindow.Styles.BusyProgressBar}"
+                                            Value="{Binding BusyProgress, RelativeSource={RelativeSource AncestorType={x:Type c:RibbonWindow}}}" />
+                                        <Path
+                                            x:Name="PART_BusySpinner"
+                                            Grid.Column="1"
+                                            Width="16"
+                                            Height="16"
+                                            Margin="10,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Data="M 8,1 A 7,7 0 1 1 1.93,11.24"
+                                            RenderTransformOrigin="0.5,0.5"
+                                            Stroke="{StaticResource Namsiz.RibbonWindow.Brushes.BusyPercentForeground}"
+                                            StrokeEndLineCap="Round"
+                                            StrokeStartLineCap="Round"
+                                            StrokeThickness="2">
+                                            <Path.RenderTransform>
+                                                <RotateTransform />
+                                            </Path.RenderTransform>
+                                            <Path.Style>
+                                                <Style TargetType="Path">
+                                                    <Style.Triggers>
+                                                        <!--  只在真正可见时转：空闲（遮罩 Hidden）时不占渲染线程  -->
+                                                        <Trigger Property="IsVisible" Value="True">
+                                                            <Trigger.EnterActions>
+                                                                <BeginStoryboard x:Name="SpinStoryboard">
+                                                                    <Storyboard RepeatBehavior="Forever">
+                                                                        <DoubleAnimation
+                                                                            Duration="0:0:1"
+                                                                            From="0"
+                                                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                                            To="360" />
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </Trigger.EnterActions>
+                                                            <Trigger.ExitActions>
+                                                                <StopStoryboard BeginStoryboardName="SpinStoryboard" />
+                                                            </Trigger.ExitActions>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Path.Style>
+                                        </Path>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!--#endregion-->
+
+    <!--#region 窗口默认样式（继承 Namsiz.WPF.Window 的自定义标题栏外观）-->
+    <Style TargetType="{x:Type c:RibbonWindow}" BasedOn="{StaticResource NamsizWindow}">
+        <Setter Property="Width" Value="820" />
+        <Setter Property="Height" Value="620" />
+        <Setter Property="MinWidth" Value="485" />
+        <Setter Property="MinHeight" Value="255" />
+        <Setter Property="attach:WindowFieldAssist.CommandButtonWidth" Value="33" />
+        <Setter Property="attach:WindowFieldAssist.CommandButtonHeight" Value="33" />
+        <Setter Property="attach:WindowFieldAssist.TitlePanelEffect" Value="{x:Null}" />
+        <Setter Property="attach:WindowFieldAssist.IconStyle" Value="{StaticResource Namsiz.RibbonWindow.Styles.HiddenIcon}" />
+        <Setter Property="attach:WindowFieldAssist.TitleStyle" Value="{StaticResource Namsiz.RibbonWindow.Styles.Title}" />
+        <Setter Property="attach:WindowFieldAssist.TitlePanelBackground" Value="{StaticResource Namsiz.RibbonWindow.Brushes.Primary}" />
+        <Setter Property="attach:WindowFieldAssist.FunctionBarContentTemplate" Value="{StaticResource Namsiz.RibbonWindow.FunctionBarTemplate}" />
+        <Setter Property="attach:WindowFieldAssist.CloseButtonStyle">
+            <Setter.Value>
+                <Style BasedOn="{StaticResource NamsizWindowCloseButton}" TargetType="Button">
+                    <Setter Property="VerticalAlignment" Value="Top" />
+                    <Setter Property="Margin" Value="1,1,1,1" />
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="attach:WindowFieldAssist.MaximizeButtonStyle">
+            <Setter.Value>
+                <Style BasedOn="{StaticResource NamsizWindowMaximizeButton}" TargetType="Button">
+                    <Setter Property="VerticalAlignment" Value="Top" />
+                    <Setter Property="Margin" Value="0,1" />
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="attach:WindowFieldAssist.MinimizeButtonStyle">
+            <Setter.Value>
+                <Style BasedOn="{StaticResource NamsizWindowMinimizeButton}" TargetType="Button">
+                    <Setter Property="VerticalAlignment" Value="Top" />
+                    <Setter Property="Margin" Value="0,1" />
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="attach:WindowFieldAssist.RestoreButtonStyle">
+            <Setter.Value>
+                <Style BasedOn="{StaticResource NamsizWindowRestoreButton}" TargetType="Button">
+                    <Setter Property="VerticalAlignment" Value="Top" />
+                    <Setter Property="Margin" Value="0,1" />
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!--#endregion-->
+
+</ResourceDictionary>

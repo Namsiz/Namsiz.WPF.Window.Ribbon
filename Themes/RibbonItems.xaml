@@ -1,0 +1,100 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="clr-namespace:Namsiz.WPF.Window.Ribbon.Controls">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Namsiz.WPF.Window.Ribbon;component/Themes/RibbonShared.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <!--
+        功能区内部的隐式样式：由 Ribbon 的控件模板资源合并，因此只对功能区子树生效，
+        不会影响窗口其它位置的同名控件（例如数据区里的普通按钮）。
+        使用方在功能区里写 WPF 内置控件即可，无需关心外观。
+    -->
+
+    <!--  命令按钮  -->
+    <Style BasedOn="{StaticResource Namsiz.Ribbon.Styles.CommandButton}" TargetType="Button" />
+
+    <!--  分组内的竖线分隔符：<Separator />  -->
+    <Style TargetType="Separator">
+        <Setter Property="Width" Value="1" />
+        <Setter Property="Margin" Value="4,8" />
+        <Setter Property="Background" Value="{StaticResource Namsiz.Ribbon.Brushes.Border}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Rectangle Width="1" Fill="{TemplateBinding Background}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
+        查询输入框：RibbonProperties.Header 作为**左侧**标签（右对齐，够 4 个汉字宽），
+        输入框占剩余宽度；没设置 Header 时标签折叠，输入框自动铺满。
+        整体高度约 26px，一列能竖排 3 个，放不下才换到下一列。
+    -->
+    <Style TargetType="TextBox">
+        <Setter Property="MinWidth" Value="120" />
+        <!--  内边距只管光标与边框的距离：左边 4 已经够，别让内容缩进去太多  -->
+        <Setter Property="Padding" Value="4,2" />
+        <!--  上下各 4：相邻两个输入框之间留出 8px，避免挤成一条  -->
+        <Setter Property="Margin" Value="3,4" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{StaticResource Namsiz.Ribbon.Brushes.ButtonForeground}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            x:Name="Label"
+                            Grid.Column="0"
+                            MinWidth="52"
+                            Margin="0,0,6,0"
+                            VerticalAlignment="Center"
+                            FontSize="11"
+                            Foreground="{StaticResource Namsiz.Ribbon.Brushes.GroupHeaderForeground}"
+                            Text="{Binding Path=(c:RibbonProperties.Header), RelativeSource={RelativeSource AncestorType=TextBox}}"
+                            TextAlignment="Right"
+                            TextTrimming="CharacterEllipsis"
+                            Visibility="{Binding Path=(c:RibbonProperties.Header), RelativeSource={RelativeSource AncestorType=TextBox}, Converter={StaticResource Namsiz.Ribbon.Converters.NullToVisibility}}" />
+
+                        <Border
+                            x:Name="Bd"
+                            Grid.Column="1"
+                            MinHeight="24"
+                            Background="White"
+                            BorderBrush="#C9CDD2"
+                            BorderThickness="1"
+                            CornerRadius="3"
+                            SnapsToDevicePixels="True">
+                            <ScrollViewer
+                                x:Name="PART_ContentHost"
+                                Margin="{TemplateBinding Padding}"
+                                VerticalAlignment="Center" />
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#8FB8E8" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#2F7BF6" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>
