@@ -1,0 +1,14 @@
+# 构建产物
+bin/
+obj/
+nupkg/
+node_cache/
+
+# VS / Rider
+.vs/
+*.user
+*.suo
+
+# 系统
+Thumbs.db
+desktop.ini
